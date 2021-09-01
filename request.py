@@ -1,20 +1,66 @@
-import requests
 import json
-def course_name():
-    a = requests.get("https://join.navgurukul.org/api/partners")
+import requests
+def courses():
+    a = requests.get("http://saral.navgurukul.org/api/courses")
     a1 = a.text
     # print(a1)
-    with open("task.json","w") as f:
+    print("------------------------")
+    with open("courses.json","w") as f:
         python_dict=json.loads(a1)
         json.dump(python_dict,f,indent=4)
-    with open("task.json","r") as f:
+    with open("courses.json","r") as f:
         data = json.load(f)
-        # print(data)
-    list_of_name=[]
-    i=0
-    while i<len(data["data"]):
-        # print(i,"..",data["data"][i]["name"])
-        list_of_name.append(data["data"][i]["name"])
-        i+=1
-    print(list_of_name)
-course_name()
+    id_of_courses = [] 
+    i = 0
+    while i < len(data['availableCourses']):
+        print(i,".",data['availableCourses'][i]['name'],"---",data['availableCourses'][i]['id'])
+        id_of_courses.append(data['availableCourses'][i]['id'])
+        i+=1 
+
+    select_course = int(input("select the course u want by selecting cooresponding number:"))
+    excercises = requests.get("http://saral.navgurukul.org/api/courses/"+str(id_of_courses[select_course])+"/exercises")
+    a=excercises.json()
+    # print(a["data"])
+    j=0
+    l=0
+    list_of_slug = []
+    while j<len(a["data"]):
+        print(l,":",a["data"][j]["name"])
+        list_of_slug.append(a['data'][j]["slug"])
+        l+=1
+        b=(a["data"][j]["childExercises"])
+        # print(b)
+        k=0
+        while k<len(b):
+            c=(b[k]["name"])
+            print("     ", l,"..",c)
+            list_of_slug.append(b[k]['slug'])
+            k+=1
+            l+=1
+            # n=0
+            # while n<len(list_of_slug):
+            #     print(n,[n]["content"])
+            #     n+=1
+
+        j+=1
+    slug_num = int(input("choose the corresp3onding slug number"))
+    slug_list = requests.get("http://saral.navgurukul.org/api/courses/"+ str(select_course )+"/exercise/getBySlug?slug=" + list_of_slug[slug_num])
+    b=slug_list.json()
+    print("content:",b["content"]) 
+    next_step = input("coose your next step:")
+    i=0  
+    while i<len(list_of_slug):
+        if next_step == "up":
+            courses()
+        elif next_step == "prev":
+            # slug_num-=1
+            slug_list = requests.get("http://saral.navgurukul.org/api/courses/"+ str(select_course )+"/exercise/getBySlug?slug=" + list_of_slug[slug_num-1])
+            print("content:",b["content"]) 
+        elif next_step == "next":
+            # slug_num+=1
+            slug_list = requests.get("http://saral.navgurukul.org/api/courses/"+ str(select_course )+"/exercise/getBySlug?slug=" + list_of_slug[slug_num+1])
+            print("content:",b["content"]) 
+        elif next_step == "exit":
+            break
+        # select_course= int(input("select the course u want by selecting cooresponding number:")
+courses()
